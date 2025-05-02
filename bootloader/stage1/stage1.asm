@@ -33,6 +33,14 @@ ebp_fil_sys_type: db 'GOTCHA  ' ; 54 @ 8
 
 .start:
 cli
+
+mov ah, 0xa
+mov al, 'A'
+mov bh, 0x0
+mov cx, 1
+int 0x10
+
+cli
 hlt
 hlt
 
