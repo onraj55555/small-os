@@ -1,5 +1,6 @@
 all:
 	$(MAKE) make_fat16_file
+	$(MAKE) -C bootloader/stage1
 	$(MAKE) inject_stage1
 	$(MAKE) launch
 
@@ -13,4 +14,4 @@ launch:
 	qemu-system-i386 -drive format=raw,file=disk
 
 clean:
-	rm disk
+	rm disk bootloader/stage1/stage1.bin

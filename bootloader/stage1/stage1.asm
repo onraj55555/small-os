@@ -30,19 +30,53 @@ ebp_vol_id: dd 0x0 ; 39 @ 4
 ebp_vol_lab: db 'MY FAT DISK' ; 43 @ 11
 ebp_fil_sys_type: db 'GOTCHA  ' ; 54 @ 8
 
+; ds:si : pointer to null-terminated ascii string
+.puts:
+mov ah, 0xe
+mov bh, 0x0
+mov cx, 0x1
+
+.puts_loop:
+lodsb
+test al, al
+jz .puts_done
+
+int 0x10
+jmp .puts_loop
+
+.puts_done:
+ret
+
+
+; Make sure that CS is set to 0
+.pre_start:
+cli
+jmp 0x0:.start
 
 .start:
-cli
 
-mov ah, 0xa
-mov al, 'A'
-mov bh, 0x0
-mov cx, 1
-int 0x10
+; Setup segment registers and stackpointer, code and data lives in the same location
+; CS is already 0
+mov ax, 0x0
+mov ds, ax ; ds will start at the same location as cs
+mov ss, ax ; ss will start at the same location as cs
+mov sp, 0x7c00 ; let the stack begin right before the code
+
+;mov ax, .hello_world
+;mov si, ax
+;call .puts
+
+; Read disk parameters
+mov ah, 0x8
+mov dl, [ebp_drv_num]
+int 0x13
+
 
 cli
 hlt
 hlt
+
+.hello_world: db 'Hello World!', 0x0
 
 ; Fill file with 0's until 510
 times 510-($-$$) db 0
