@@ -1,2 +1,5 @@
 *.bin
 disk
+temp
+temp/*
+a.out
