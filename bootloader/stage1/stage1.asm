@@ -109,19 +109,23 @@ mov ax, [bpb_fat_sz_16]
 mul byte [bpb_num_fat]
 add ax, [bpb_rsvd_sec_cnt]
 
-; Loading the first sector of the root dir
+; Loading the root dir
 call .lba_to_chs
-mov ah, 0x2
-mov al, 0x1
+mov ax, 32
+mul word [bpb_root_ent_cnt]
+mov bx, 512
+div bx ; al contains sectors root directory spans, should be 32 sectors
 mov dl, [ebp_drv_num]
 mov bx, 0x7e00
-int 0x13
+call .read_sectors
 jc .failed_to_read_drive_params
 
 ; Finding the kernel
-; Assumption: kernel entry should be located in the first sector
+; Assumption: should be in the root directory
 mov bx, 16
-mov si, 0x7e00
+mov si, .kernel
+call .puts
+jmp .hlt
 mov di, .kernel
 .find_kernel_loop:
 test bx, bx
@@ -185,6 +189,19 @@ pop di
 pop si
 ret
 ; --- STRNCMP END ---
+
+; --- READ_SECTORS ---
+; al: number of sectors to read
+; ch: cylinder
+; cl: sector
+; dh: head
+; dl: drive num
+; es:bx: pointer to buffer
+.read_sectors:
+mov ah, 0x2
+int 0x13
+ret
+; --- READ_SECTORS END ---
 
 ; Fill file with 0's until 510
 times 510-($-$$) db 0
